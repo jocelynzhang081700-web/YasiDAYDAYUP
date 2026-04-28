@@ -1,0 +1,350 @@
+import React, { useState, useMemo } from 'react';
+import { 
+  CheckCircle2, 
+  Circle, 
+  Trophy, 
+  Info, 
+  Target, 
+  Clock, 
+  BookOpen, 
+  PenTool, 
+  Headphones, 
+  Mic, 
+  Flame 
+} from 'lucide-react';
+
+const themes = {
+  1: {
+    name: "基础适配期",
+    color: "rose",
+    bg: "bg-rose-50",
+    text: "text-rose-600",
+    border: "border-rose-200",
+    activeBtn: "bg-rose-500 text-white border-rose-600 shadow-md shadow-rose-200",
+    ring: "ring-rose-200",
+    progress: "bg-rose-500"
+  },
+  2: {
+    name: "强化刷题期",
+    color: "amber",
+    bg: "bg-amber-50",
+    text: "text-amber-600",
+    border: "border-amber-200",
+    activeBtn: "bg-amber-500 text-white border-amber-600 shadow-md shadow-amber-200",
+    ring: "ring-amber-200",
+    progress: "bg-amber-500"
+  },
+  3: {
+    name: "全真冲刺期",
+    color: "emerald",
+    bg: "bg-emerald-50",
+    text: "text-emerald-600",
+    border: "border-emerald-200",
+    activeBtn: "bg-emerald-500 text-white border-emerald-600 shadow-md shadow-emerald-200",
+    ring: "ring-emerald-200",
+    progress: "bg-emerald-500"
+  }
+};
+
+const monthlyGoals = {
+  1: [
+    "完成全套听力、阅读题型方法论学习",
+    "小作文6类图表框架全部掌握",
+    "Part1题库过完1轮，无开口恐惧",
+    "第1周首日：完成剑18全套摸底考试"
+  ],
+  2: [
+    "听力、阅读正确率稳定80%+",
+    "大小作文累计各12篇，全部完成精改",
+    "Part2题库过完1轮，全程流利不卡壳",
+    "建立专属错题本+替换词本"
+  ],
+  3: [
+    "完成6次完整雅思全真模考",
+    "模考稳定：听力8.0、阅读8.0、写作7.0、口语7.0",
+    "所有口语话题熟练、作文框架固化",
+    "考前一周停止新题，只复盘巩固"
+  ]
+};
+
+const getTasksForDay = (day) => {
+  const month = Math.ceil(day / 30);
+  const isOdd = day % 2 !== 0;
+
+  if (month === 1) {
+    let tasks = [
+      { id: 'm1-t1', time: '25-30min', title: '词汇与替换', desc: '背诵：王陆807听力高频词（场景词+拼写）；积累：雅思阅读/写作高频同义替换20组', icon: <BookOpen className="w-4 h-4"/> },
+      { id: 'm1-t2', time: '60min', title: isOdd ? '听力专项' : '阅读专项', desc: isOdd ? '精学1类题型（填空→地图→匹配→选择）；精听答案句，纠正连读/弱读/单复数错误' : '精学1类题型（判断题→填空→段落匹配→标题）；吃透False/NG核心区别，学会定位技巧', icon: isOdd ? <Headphones className="w-4 h-4"/> : <BookOpen className="w-4 h-4"/> },
+      { id: 'm1-t3', time: '60min', title: '写作打底', desc: '小作文优先：每天1类图表句型积累（各类图表轮着来）；大作文：只学4类题型结构，积累话题论点，不写完整全文', icon: <PenTool className="w-4 h-4"/> },
+      { id: 'm1-t4', time: '40min', title: '口语打底', desc: '过当季题库Part1 8–10题，每题自然拓展3句话；简单开口朗读，纠正发音，不背模板', icon: <Mic className="w-4 h-4"/> },
+      { id: 'm1-t5', time: '15min', title: '当日复盘', desc: '整理当天错题、写错单词、不熟替换词', icon: <Clock className="w-4 h-4"/> },
+    ];
+    if (day === 1) {
+      tasks.unshift({ id: 'm1-t0', time: '120min', title: '摸底测试', desc: '完成剑18全套摸底考试，检验初始水平', icon: <Flame className="w-4 h-4"/> });
+    }
+    return tasks;
+  }
+  
+  if (month === 2) {
+    return [
+      { id: 'm2-t1', time: '20min', title: '复盘与积累', desc: '复盘上月所有同义替换+听力易错词；新增教育/科技/环境/社会 话题高级搭配', icon: <BookOpen className="w-4 h-4"/> },
+      { id: 'm2-t2', time: '70min', title: '听阅限时刷题', desc: '每天听力/阅读二选一限时训练（严格计时）；每周固定听阅各3套；逐题精析错因：定位错/替换不认识/审题失误', icon: <Headphones className="w-4 h-4"/> },
+      { id: 'm2-t3', time: '70min', title: '写作出力 (提分关键)', desc: '优先小作文每周4篇，其次大作文每周3篇（手写+精改）；每篇必须精改，标注语法错误、逻辑漏洞、用词问题', icon: <PenTool className="w-4 h-4"/> },
+      { id: 'm2-t4', time: '35min', title: '口语完整练习', desc: '每天1个Part2话题，限时2分钟录音，脱稿叙述；每周精练5道Part3难题，练习深度观点+分层表达', icon: <Mic className="w-4 h-4"/> },
+      { id: 'm2-t5', time: '15min', title: '当日复盘', desc: '整理作文高分句型、口语卡顿词句、阅读错题', icon: <Clock className="w-4 h-4"/> },
+    ];
+  }
+  
+  if (month === 3) {
+    return [
+      { id: 'm3-t1', time: '20min', title: '强化记忆', desc: '背诵整本高频同义替换+写作万能逻辑词；复盘作文修改痕迹、口语高频易错表达', icon: <BookOpen className="w-4 h-4"/> },
+      { id: 'm3-t2', time: '90min', title: '模考/补强', desc: '每周2次完整全真模考（剑19–20，复刻考试时间）；非模考日：薄弱单科限时特训（写作弱练大作文，口语弱练Part3）', icon: <Flame className="w-4 h-4"/> },
+      { id: 'm3-t3', time: '60min', title: '输出锁分', desc: '小作文/大作文隔天交替写短篇练手感，不追求新话题；口语全题库二刷，Part2快速串题，Part3拔高逻辑', icon: <PenTool className="w-4 h-4"/> },
+      { id: 'm3-t4', time: '30min', title: '短板精准补漏', desc: '听力：重做易错题型，精听高频难section；阅读：主攻段落匹配、heading等难题；针对性解决自己长期丢分点', icon: <Target className="w-4 h-4"/> },
+      { id: 'm3-t5', time: '10min', title: '错题回顾', desc: '翻看错题本，不做新难题，保持手感（考前一周停止新题）', icon: <Clock className="w-4 h-4"/> },
+    ];
+  }
+};
+
+export default function App() {
+  const [selectedDay, setSelectedDay] = useState(1);
+  const [checkedTasks, setCheckedTasks] = useState({});
+
+  const selectedMonth = Math.ceil(selectedDay / 30);
+  const theme = themes[selectedMonth];
+  const dayTasks = getTasksForDay(selectedDay);
+
+  const handleTaskToggle = (day, taskIndex) => {
+    const key = `${day}-${taskIndex}`;
+    setCheckedTasks(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const isDayCompleted = (dayNum) => {
+    const tasks = getTasksForDay(dayNum);
+    return tasks.every((_, index) => checkedTasks[`${dayNum}-${index}`]);
+  };
+
+  const completedDaysCount = useMemo(() => {
+    let count = 0;
+    for (let d = 1; d <= 90; d++) {
+      if (isDayCompleted(d)) count++;
+    }
+    return count;
+  }, [checkedTasks]);
+
+  const progressPercent = Math.round((completedDaysCount / 90) * 100);
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-20">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-4 py-5">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-black text-gray-800 flex items-center gap-2">
+                <Trophy className="text-yellow-500 w-7 h-7" />
+                雅思3个月 7.5+ 冲刺计划
+              </h1>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="text-xs font-bold bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md border border-blue-100">适配: 六级582</span>
+                <span className="text-xs font-bold bg-purple-50 text-purple-600 px-2.5 py-1 rounded-md border border-purple-100">目标: 总分7.5+ / 小分≥6.5</span>
+                <span className="text-xs font-bold bg-rose-50 text-rose-600 px-2.5 py-1 rounded-md border border-rose-100">日均学习: 4小时</span>
+              </div>
+            </div>
+
+            <div className="w-full md:w-56 bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div className="flex justify-between text-xs mb-2 font-bold text-slate-600 uppercase tracking-wider">
+                <span>总打卡进度</span>
+                <span className="text-blue-600">{progressPercent}%</span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2.5 rounded-full transition-all duration-700 ease-out" 
+                  style={{ width: `${progressPercent}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-4 py-8">
+        
+        {/* Rules Banner */}
+        <div className="bg-blue-50/80 border-l-4 border-blue-500 p-4 mb-8 rounded-r-2xl shadow-sm">
+          <div className="flex items-start">
+            <Info className="text-blue-500 mr-3 mt-0.5 flex-shrink-0 w-5 h-5" />
+            <div>
+              <h3 className="text-blue-900 font-bold text-sm tracking-wide">通用铁律 (Strict Rules)</h3>
+              <p className="text-blue-800 text-sm mt-1 opacity-90 leading-relaxed">
+                每天严格按表格顺序学，不要调换先后；各项任务全部完成再打卡。切忌眼高手低！
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Phase Tabs */}
+        <div className="flex gap-2 bg-white p-2 rounded-2xl shadow-sm overflow-x-auto mb-6 border border-slate-100">
+          {[1, 2, 3].map(m => (
+            <button
+              key={m}
+              onClick={() => setSelectedDay((m - 1) * 30 + 1)}
+              className={`flex-1 min-w-[140px] py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2
+                ${selectedMonth === m
+                  ? `${themes[m].bg} ${themes[m].text} shadow-sm ring-1 ${themes[m].ring}`
+                  : 'text-slate-500 hover:bg-slate-50'
+                }
+              `}
+            >
+              {m === 1 && '🔴'}
+              {m === 2 && '🟡'}
+              {m === 3 && '🟢'}
+              第{m}个月 | {themes[m].name}
+            </button>
+          ))}
+        </div>
+
+        {/* Days Grid */}
+        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 mb-8">
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h2 className="font-bold text-slate-700 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-slate-400" />
+              {themes[selectedMonth].name} - 进度网格
+            </h2>
+            <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">30 Days</span>
+          </div>
+          <div className="grid grid-cols-5 md:grid-cols-10 gap-2.5">
+            {Array.from({ length: 30 }).map((_, i) => {
+              const dayNum = (selectedMonth - 1) * 30 + (i + 1);
+              const isSelected = selectedDay === dayNum;
+              const isCompleted = isDayCompleted(dayNum);
+
+              return (
+                <button
+                  key={dayNum}
+                  onClick={() => setSelectedDay(dayNum)}
+                  className={`
+                    aspect-square rounded-2xl flex flex-col items-center justify-center text-sm font-bold transition-all border-2
+                    ${isSelected ? `ring-4 ring-offset-2 ${theme.ring} border-${theme.color}-400 scale-110 z-10 shadow-lg` : 'border-transparent'}
+                    ${isCompleted ? theme.activeBtn : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border-slate-100 hover:text-slate-600'}
+                  `}
+                >
+                  <span className="text-[10px] font-normal opacity-70 mb-0.5 uppercase tracking-wider">Day</span>
+                  <span className="text-base">{i + 1}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Main Content Split */}
+        <div className="flex flex-col lg:flex-row gap-8">
+          
+          {/* Left: Tasks */}
+          <div className="flex-1">
+            <div className="flex items-end justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800">
+                  Day {selectedDay} 任务清单
+                </h2>
+                <p className="text-sm text-slate-500 mt-1 font-medium">
+                  {selectedDay % 2 !== 0 && selectedMonth === 1 ? '今日重点：听力单项' : ''}
+                  {selectedDay % 2 === 0 && selectedMonth === 1 ? '今日重点：阅读单项' : ''}
+                  {selectedMonth === 2 ? '强化训练，注意限时控制' : ''}
+                  {selectedMonth === 3 ? '全真模考与弱点突破' : ''}
+                </p>
+              </div>
+            </div>
+
+            {isDayCompleted(selectedDay) && (
+              <div className="bg-gradient-to-r from-emerald-400 to-teal-500 text-white p-4 rounded-2xl mb-6 shadow-md shadow-emerald-200 flex items-center gap-4 animate-in fade-in zoom-in duration-500">
+                <div className="bg-white/20 p-2 rounded-full">
+                  <Trophy className="w-8 h-8 text-yellow-200" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">太棒了！今日任务全部完成 🎉</h3>
+                  <p className="text-sm opacity-90 font-medium">保持这个节奏，7.5分在向你招手！</p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {dayTasks.map((task, index) => {
+                const isChecked = checkedTasks[`${selectedDay}-${index}`];
+                return (
+                  <div
+                    key={index}
+                    onClick={() => handleTaskToggle(selectedDay, index)}
+                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
+                      isChecked 
+                        ? 'border-emerald-400 bg-emerald-50/40 opacity-75' 
+                        : 'border-slate-100 bg-white hover:border-blue-200 hover:shadow-md'
+                    } flex items-start gap-4`}
+                  >
+                    <div className="mt-1 transition-transform active:scale-75">
+                       {isChecked ? (
+                         <CheckCircle2 className="text-emerald-500 w-7 h-7 drop-shadow-sm" />
+                       ) : (
+                         <Circle className="text-slate-300 w-7 h-7" />
+                       )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md uppercase tracking-wider">
+                          顺序 {index + 1}
+                        </span>
+                        <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-md flex items-center gap-1.5">
+                          {task.icon} {task.time}
+                        </span>
+                        <h4 className={`font-bold text-lg ml-1 ${isChecked ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+                          {task.title}
+                        </h4>
+                      </div>
+                      <p className={`text-sm leading-relaxed ${isChecked ? 'text-slate-400' : 'text-slate-600'}`}>
+                        {task.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right: Goals & Stats */}
+          <div className="w-full lg:w-[340px] space-y-6">
+            <div className={`p-6 rounded-3xl border-2 ${theme.border} ${theme.bg} shadow-sm`}>
+              <h3 className={`font-bold text-lg mb-5 flex items-center gap-2 ${theme.text}`}>
+                <Target className="w-5 h-5" />
+                本月硬性指标
+              </h3>
+              <ul className="space-y-4">
+                {monthlyGoals[selectedMonth].map((goal, idx) => (
+                  <li key={idx} className="flex items-start gap-3 text-sm text-slate-700 font-medium leading-relaxed">
+                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${theme.progress} shadow-sm`} />
+                    {goal}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+              <h3 className="font-bold text-slate-800 mb-1 flex items-center gap-2">
+                <Flame className="w-5 h-5 text-orange-500" />
+                坚持天数
+              </h3>
+              <p className="text-xs text-slate-400 mb-4">每一天都在向目标靠近</p>
+              <div className="text-4xl font-black text-slate-800 flex items-baseline gap-2">
+                {completedDaysCount} 
+                <span className="text-lg text-slate-400 font-bold">/ 90 天</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </main>
+    </div>
+  );
+}
